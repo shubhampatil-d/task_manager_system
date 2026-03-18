@@ -12,6 +12,14 @@ export const register = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ msg: "Email and password required" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ msg: "Password must be 6+ chars" });
+    }
+
     const hashed = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
@@ -26,7 +34,10 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-
+  if (!email || !password) {
+    return res.status(400).json({ msg: "Email and password required" });
+  }
+  
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) return res.status(401).json({ msg: "Invalid email" });

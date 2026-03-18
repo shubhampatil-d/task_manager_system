@@ -7,6 +7,10 @@ const prisma = new PrismaClient();
 export const createTask = async (req: any, res: any) => {
   const { title } = req.body;
 
+  if (!title) {
+    return res.status(400).json({ msg: "Title is required" });
+  }
+
   const task = await prisma.task.create({
     data: {
       title,
@@ -20,23 +24,27 @@ export const createTask = async (req: any, res: any) => {
 
 // ✅ GET TASKS (pagination + filter + search)
 export const getTasks = async (req: any, res: any) => {
-  const { page = 1, limit = 5, search = "", status } = req.query;
+  try{
+    const { page = 1, limit = 5, search = "", status } = req.query;
 
-  const tasks = await prisma.task.findMany({
-    where: {
-      userId: req.user.userId,
-      title: {
-        contains: search,
-      },
-      ...(status !== undefined && {
-        completed: status === "true",
-      }),
-    },
-    skip: (Number(page) - 1) * Number(limit),
-    take: Number(limit),
-  });
+    const tasks = await prisma.task.findMany({
+        where: {
+        userId: req.user.userId,
+        title: {
+            contains: search,
+        },
+        ...(status !== undefined && {
+            completed: status === "true",
+        }),
+        },
+        skip: (Number(page) - 1) * Number(limit),
+        take: Number(limit),
+    });
 
-  res.json(tasks);
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching tasks" });
+  }
 };
 
 
